@@ -1,0 +1,13 @@
+services:
+  dev-db:
+    image: postgres
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=audiophile
+    ports:
+      - "5404:5432"
+    expose:
+      - 5404
