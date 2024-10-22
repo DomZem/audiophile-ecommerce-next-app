@@ -11,7 +11,10 @@
     --background: 0 0% 98%;
     --border: 0 0% 81%;
 
+    /* #101010 */
     --muted: 0 0 6%;
+
+    /* #F1F1F1 */
     --accent: 0 0 95%;
 
     --radius: 0.5rem;
@@ -43,14 +46,18 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%; */
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-base text-black/50;
+  }
+}
+
+@layer components {
+  .icon {
+    @apply cursor-pointer stroke-white duration-300 ease-out hover:stroke-primary;
   }
 }

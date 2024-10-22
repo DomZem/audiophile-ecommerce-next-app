@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Manrope } from "next/font/google";
+import { AppLayout } from "~/components/layout/AppLayout";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.className}`}>
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          <AppLayout>{children}</AppLayout>
+        </TRPCReactProvider>
       </body>
     </html>
   );

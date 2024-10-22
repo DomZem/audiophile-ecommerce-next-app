@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { type Config } from "tailwindcss";
 
 export default {
@@ -60,6 +61,14 @@ export default {
         {
           lineHeight: "3.625rem",
           letterSpacing: "0.0357em",
+          fontWeight: "700",
+        },
+      ],
+      subtitle: [
+        "0.8125rem",
+        {
+          lineHeight: "1rem",
+          letterSpacing: "0.93px",
           fontWeight: "700",
         },
       ],
