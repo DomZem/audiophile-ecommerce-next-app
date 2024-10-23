@@ -14,18 +14,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
 // Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
@@ -55,14 +43,16 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String         @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?        @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
+
+    addresses     user_address[]
+    orders        order[]
 }
 
 model VerificationToken {
@@ -71,4 +61,85 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+abstract model standard_model {
+    created_at DateTime @db.Timestamptz @default(now())
+    updated_at DateTime @db.Timestamptz @updatedAt
+}
+
+abstract model standard_cuid_model extends standard_model {
+    id String @id @default(cuid())
+}
+
+enum ProductCategory {
+    EARPHONES
+    HEADPHONES
+    SPEAKERS
+}
+
+model product extends standard_cuid_model {
+    name           String
+    description    String
+    category       ProductCategory
+    disabled_at    DateTime?
+    price_cents    Int
+    card_image_url String
+    stock          Int
+
+    accessories    product_accessory[]
+    images         product_image[]
+    orders         order_item[]
+}
+
+model product_accessory extends standard_cuid_model {
+    name       String
+    stock      Int
+
+    product    product @relation(fields: [product_id], references: [id])
+    product_id String
+}
+
+model product_image extends standard_cuid_model {
+    url        String
+
+    product    product @relation(fields: [product_id], references: [id])
+    product_id String
+}
+
+enum OrderStatus {
+    PENDING
+    PROCESSING
+    SHIPPED
+}
+
+model order extends standard_cuid_model {
+    status      OrderStatus  @default(PENDING)
+    total_cents Int
+
+    user        User         @relation(fields: [user_id], references: [id])
+    user_id     String
+
+    items       order_item[]
+}
+
+model order_item extends standard_cuid_model {
+    quantity    Int
+    price_cents Int
+
+    order       order   @relation(fields: [order_id], references: [id])
+    order_id    String
+
+    product     product @relation(fields: [product_id], references: [id])
+    product_id  String
+}
+
+model user_address extends standard_cuid_model {
+    street_address String
+    city           String
+    zip_code       String
+    country        String
+
+    user           User   @relation(fields: [user_id], references: [id])
+    user_id        String
 }
