@@ -47,4 +47,4 @@ yarn-error.log*
 .idea
 
 # primsa schema
-/prisma/schema.prisma
+schema.prisma
