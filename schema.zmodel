@@ -85,22 +85,23 @@ enum ProductCategory {
 }
 
 model product extends standard_cuid_model {
-    name           String
-    description    String
-    category       ProductCategory
-    disabled_at    DateTime?
-    price_cents    Int
-    card_image_url String
-    stock          Int
+    name             String
+    description      String
+    category         ProductCategory
+    disabled_at      DateTime?
+    price_cents      Int
+    card_image_url   String
+    quantity         Int
+    features_content String
 
-    accessories    product_accessory[]
-    images         product_image[]
-    orders         order_item[]
+    accessories      product_accessory[]
+    images           product_image[]
+    orders           order_item[]
 }
 
 model product_accessory extends standard_cuid_model {
     name       String
-    stock      Int
+    quantity   Int
 
     product    product @relation(fields: [product_id], references: [id])
     product_id String
@@ -108,6 +109,7 @@ model product_accessory extends standard_cuid_model {
 
 model product_image extends standard_cuid_model {
     url        String
+    alt        String
 
     product    product @relation(fields: [product_id], references: [id])
     product_id String
