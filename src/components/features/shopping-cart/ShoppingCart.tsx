@@ -9,19 +9,24 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "~/components/ui/Dialog";
 import { cartProductsStore } from "~/stores/cart-store";
 import { formatPrice } from "~/utils/product/format-price";
 import { ProductsList } from "./ProductsList";
 import { api } from "~/trpc/react";
+import { useState } from "react";
 
 export const ShoppingCart = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const [cartProducts, setCartProducts] = useAtom(cartProductsStore);
 
   const { data: products } = api.product.getAllByIds.useQuery({
     ids: cartProducts.map((p) => p.productId),
   });
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
 
   const totalAmountCents = products?.reduce((sum, product) => {
     const cartProduct = cartProducts.find((p) => p.productId === product.id);
@@ -31,14 +36,18 @@ export const ShoppingCart = () => {
   }, 0);
 
   return (
-    <Dialog>
-      <DialogTrigger className="relative">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <button
+        className="relative"
+        type="button"
+        onClick={() => setIsOpen(true)}
+      >
         <Cart className="icon" />
 
         <span className="absolute bottom-0 right-0 inline-flex size-5 translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full bg-primary text-[12px] text-white">
           {cartProducts.length}
         </span>
-      </DialogTrigger>
+      </button>
       <DialogContent className="gap-8 md:p-8">
         <DialogHeader className="flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-lg font-bold uppercase text-black">
@@ -61,7 +70,7 @@ export const ShoppingCart = () => {
               ${totalAmountCents ? formatPrice(totalAmountCents) : "0.00"}
             </p>
           </div>
-          <Button className="w-full" asChild>
+          <Button className="w-full" onClick={handleClose} asChild>
             <Link href="/checkout">checkout</Link>
           </Button>
         </div>
