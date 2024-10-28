@@ -1,14 +1,20 @@
-import { Footer } from "./footer/Footer";
-import { Header } from "./Header";
+import { cn } from "~/lib/utils";
+import { Wrapper } from "../ui/Wrapper";
+import { BestGearSection } from "./BestGearSection";
 
 export const AppLayout = ({
+  className,
   children,
-}: Readonly<{ children: React.ReactNode }>) => {
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) => {
   return (
-    <div>
-      <Header />
+    <Wrapper
+      className={cn("pb-28 pt-10 md:py-24 lg:pb-48 lg:pt-28", className)}
+    >
       {children}
-      <Footer />
-    </div>
+      <BestGearSection />
+    </Wrapper>
   );
 };
