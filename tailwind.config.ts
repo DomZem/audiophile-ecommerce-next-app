@@ -72,6 +72,22 @@ export default {
           fontWeight: "700",
         },
       ],
+      overline: [
+        "0.875rem",
+        {
+          lineHeight: "1rem",
+          letterSpacing: "10px",
+          fontWeight: "400",
+        },
+      ],
+      label: [
+        "0.75rem",
+        {
+          lineHeight: "1rem",
+          letterSpacing: "-0.21px",
+          fontWeight: "700",
+        },
+      ],
     },
     extend: {
       borderRadius: {

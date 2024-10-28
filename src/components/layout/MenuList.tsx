@@ -9,7 +9,10 @@ export const MenuList = ({
 }: DetailedHTMLProps<HTMLAttributes<HTMLUListElement>, HTMLUListElement>) => {
   return (
     <ul
-      className={cn("flex flex-col gap-4 md:flex-row md:gap-8", className)}
+      className={cn(
+        "flex flex-col gap-4 text-subtitle font-bold uppercase text-white md:flex-row md:gap-8",
+        className,
+      )}
       {...props}
     >
       <MenuListItem href="/">home</MenuListItem>

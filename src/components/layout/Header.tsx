@@ -1,8 +1,9 @@
 import { Sidebar } from "./Sidebar";
-import { Wrapper } from "../Wrapper";
-import { ShoppingCart, UserRound } from "lucide-react";
+import { Wrapper } from "../ui/Wrapper";
 import { Logo } from "./Logo";
 import { MenuList } from "./MenuList";
+import { ActionButton } from "../ui/ActionButton";
+import { ShoppingCart } from "../features/shopping-cart/ShoppingCart";
 
 export const Header = () => {
   return (
@@ -21,8 +22,21 @@ export const Header = () => {
         <Logo className="md:hidden" />
 
         <div className="inline-flex items-center gap-3">
-          <UserRound className="icon" />
-          <ShoppingCart className="icon" />
+          <ActionButton
+            className="hidden lg:inline-flex"
+            modalVariant="register"
+          >
+            join us
+          </ActionButton>
+          <ActionButton
+            className="hidden text-white lg:inline-flex"
+            variant="secondary"
+            modalVariant="login"
+          >
+            log in
+          </ActionButton>
+
+          <ShoppingCart />
         </div>
       </Wrapper>
     </header>

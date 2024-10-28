@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { cn } from "~/lib/utils";
 
 export const MenuListItem = ({
@@ -12,13 +12,15 @@ export const MenuListItem = ({
   children: React.ReactNode;
 }) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const segment = useSelectedLayoutSegment();
+
+  const isActive = segment ? href.includes(segment) : pathname === href;
 
   return (
     <li>
       <Link
         className={cn(
-          "text-subtitle font-bold uppercase text-white duration-300 ease-out hover:text-primary",
+          "duration-300 ease-out hover:text-primary",
           isActive && "text-primary",
         )}
         href={href}

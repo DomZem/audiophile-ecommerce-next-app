@@ -1,4 +1,4 @@
-import { Wrapper } from "../../Wrapper";
+import { Wrapper } from "../../ui/Wrapper";
 import { MenuList } from "../MenuList";
 import { Logo } from "../Logo";
 import { Line } from "./Line";

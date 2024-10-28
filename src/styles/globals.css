@@ -60,4 +60,8 @@
   .icon {
     @apply cursor-pointer stroke-white duration-300 ease-out hover:stroke-primary;
   }
+
+  .animation-standard {
+    @apply duration-300 ease-out;
+  }
 }
