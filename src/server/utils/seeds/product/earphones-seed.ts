@@ -11,6 +11,7 @@ export const earphonesSeed = async ({ db }: { db: PrismaClient }) => {
       features_content: "",
       quantity: 10,
       price_cents: 599_00,
+      vat_percentage: 23,
       accessories: {
         createMany: {
           data: [

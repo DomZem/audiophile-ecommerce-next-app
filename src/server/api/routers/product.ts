@@ -21,6 +21,7 @@ export const productRouter = createTRPCRouter({
           card_image_url: true,
           price_cents: true,
           quantity: true,
+          vat_percentage: true,
         },
       });
 

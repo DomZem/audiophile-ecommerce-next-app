@@ -10,6 +10,7 @@ export const headphonesSeed = async ({ db }: { db: PrismaClient }) => {
       card_image_url: "/products/headphones/x99-mark-2/card.png",
       quantity: 10,
       price_cents: 2999_00,
+      vat_percentage: 23,
       features_content: "",
       accessories: {
         createMany: {
@@ -67,6 +68,7 @@ export const headphonesSeed = async ({ db }: { db: PrismaClient }) => {
       card_image_url: "/products/headphones/x99-mark-1/card.png",
       quantity: 10,
       price_cents: 1750_00,
+      vat_percentage: 23,
       features_content: "",
       accessories: {
         createMany: {
@@ -121,6 +123,7 @@ export const headphonesSeed = async ({ db }: { db: PrismaClient }) => {
       card_image_url: "/products/headphones/xx59/card.png",
       quantity: 10,
       price_cents: 899_00,
+      vat_percentage: 23,
       features_content: "",
       accessories: {
         createMany: {

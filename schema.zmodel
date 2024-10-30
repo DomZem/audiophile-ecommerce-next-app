@@ -93,6 +93,7 @@ model product extends standard_cuid_model {
     card_image_url   String
     quantity         Int
     features_content String
+    vat_percentage   Float
 
     accessories      product_accessory[]
     images           product_image[]
