@@ -12,9 +12,9 @@ import {
 } from "~/components/ui/Dialog";
 import { cartProductsStore } from "~/stores/cart-store";
 import { formatPrice } from "~/utils/product/format-price";
-import { ProductsList } from "./ProductsList";
 import { api } from "~/trpc/react";
 import { useState } from "react";
+import { CartProductsList } from "./CartProductsList";
 
 export const ShoppingCart = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +61,7 @@ export const ShoppingCart = () => {
           </button>
         </DialogHeader>
 
-        <ProductsList />
+        <CartProductsList />
 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
