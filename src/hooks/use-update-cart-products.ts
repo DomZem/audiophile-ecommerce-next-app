@@ -15,11 +15,17 @@ export const useUpdateCartProducts = () => {
           (cp) => cp.productId !== productId,
         );
 
+        const computedQuantity = existingProduct.quantity + quantity;
+
+        if (computedQuantity <= 0) {
+          return filteredCartProducts;
+        }
+
         return [
           ...filteredCartProducts,
           {
             productId: productId,
-            quantity: existingProduct.quantity + quantity,
+            quantity: computedQuantity,
           },
         ];
       }
