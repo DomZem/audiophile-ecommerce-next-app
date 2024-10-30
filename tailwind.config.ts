@@ -67,7 +67,7 @@ export default {
       subtitle: [
         "0.8125rem",
         {
-          lineHeight: "1rem",
+          lineHeight: "1.5rem",
           letterSpacing: "0.93px",
           fontWeight: "700",
         },
@@ -78,14 +78,6 @@ export default {
           lineHeight: "1rem",
           letterSpacing: "10px",
           fontWeight: "400",
-        },
-      ],
-      label: [
-        "0.75rem",
-        {
-          lineHeight: "1rem",
-          letterSpacing: "-0.21px",
-          fontWeight: "700",
         },
       ],
     },
