@@ -1,8 +1,7 @@
-import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Manrope } from "next/font/google";
-import { AppLayout } from "~/components/layout/AppLayout";
+import { Toaster } from "~/components/ui/Toaster";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -10,7 +9,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Audiophile",
+  title: "audiophile",
   description:
     "Shop the best headphones, earbuds, and speakers from the world's top audio brands. Free shipping and returns. 30-day money-back guarantee.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
@@ -23,7 +22,8 @@ export default function RootLayout({
     <html lang="en" className={`${manrope.className}`}>
       <body>
         <TRPCReactProvider>
-          <AppLayout>{children}</AppLayout>
+          {children}
+          <Toaster />
         </TRPCReactProvider>
       </body>
     </html>

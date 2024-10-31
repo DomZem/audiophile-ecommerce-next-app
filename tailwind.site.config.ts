@@ -3,7 +3,7 @@ import { type Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./src/**/*.tsx"],
+  content: ["./src/components/**/*.tsx", "./src/app/(group)/**/*.tsx"],
   theme: {
     fontSize: {
       // 15px, 25px

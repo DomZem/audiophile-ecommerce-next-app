@@ -1,3 +1,4 @@
+import "~/styles/site.css";
 import { BaseLayout } from "~/components/layout/BaseLayout";
 import { ModalProvider } from "~/providers/ModalProvider";
 
