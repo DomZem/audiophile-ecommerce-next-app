@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-undef */
 import "~/styles/admin.css";
 import { GeistSans } from "geist/font/sans";
 import {
@@ -14,9 +15,11 @@ import {
   SidebarTrigger,
 } from "~/admin/components/ui/Sidebar";
 import {
+  Fish,
   GalleryVerticalEnd,
   Home,
   ShoppingCart,
+  Soup,
   Speaker,
   User,
 } from "lucide-react";
@@ -30,6 +33,7 @@ import {
   BreadcrumbSeparator,
 } from "~/admin/components/ui/Breadcrumb";
 import Link from "next/link";
+import { Toaster } from "~/admin/components/ui/Toaster";
 
 const items = [
   {
@@ -51,6 +55,16 @@ const items = [
     title: "Orders",
     url: "/admin/orders",
     icon: ShoppingCart,
+  },
+  {
+    title: "Dishes",
+    url: "/admin/dishes",
+    icon: Soup,
+  },
+  {
+    title: "Ingredients",
+    url: "/admin/ingredients",
+    icon: Fish,
   },
 ];
 
@@ -116,6 +130,7 @@ export default function AdminLayout({
           <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster />
     </div>
   );
 }
