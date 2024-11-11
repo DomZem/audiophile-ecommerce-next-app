@@ -1,4 +1,4 @@
-import { type z, type ZodEffects, type ZodObject, type ZodRawShape } from "zod";
+import { ZodEffects, ZodObject, type z, type ZodRawShape } from "zod";
 
 export type SchemaType =
   | ZodObject<ZodRawShape>
@@ -12,3 +12,16 @@ export type StringOrNumberKeyOnly<T> = Extract<
   }[keyof T],
   string | number
 >;
+
+export const extractFieldNamesFromSchema = (schema: SchemaType): string[] => {
+  const baseSchema = schema instanceof ZodEffects ? schema._def.schema : schema;
+
+  if (!(baseSchema instanceof ZodObject)) {
+    throw new Error("Schema must be an instance of ZodObject");
+  }
+
+  const shape = baseSchema.shape;
+  const fieldNames = Object.keys(shape);
+
+  return fieldNames;
+};
