@@ -15,6 +15,8 @@ import {
 } from "zod";
 import { type SchemaType } from "./zod";
 
+export type SelectOption = { label: string; value: string };
+
 export type FormInputFieldType =
   | "string"
   | "number"
@@ -30,7 +32,7 @@ export type FormInputField =
   | {
       type: "select";
       isRequired: boolean;
-      options: { label: string; value: string | number }[];
+      options: SelectOption[];
     };
 
 // Recursive function to unwrap the underlying type
@@ -58,7 +60,7 @@ export const getFieldType = (field: ZodTypeAny): FormInputFieldType => {
   if (baseField instanceof ZodNativeEnum || baseField instanceof ZodEnum)
     return "select";
 
-  return "string";
+  throw new Error("Unsupported field type");
 };
 
 export const mapSchemaToFormFields = (
@@ -82,35 +84,8 @@ export const mapSchemaToFormFields = (
       );
 
       if (type === "select") {
-        const field = shape[key]!;
-
-        const typeName: "ZodEnum" | "ZodNativeEnum" = (
-          field as ZodEnum<string> | ZodNativeEnum<EnumLike>
-        )._def.typeName;
-
-        let options: { label: string; value: string | number }[] = [];
-
-        if (typeName === "ZodEnum") {
-          options = Object.entries(field._def.values).map(([label, value]) => ({
-            label: label.toLowerCase(),
-            value,
-          }));
-        } else {
-          const zodNativeEnumField = field as ZodNativeEnum<EnumLike>;
-
-          options = Object.entries(zodNativeEnumField._def.values).map(
-            ([label, value]) => ({
-              label: label.toLowerCase(),
-              value,
-            }),
-          );
-        }
-
-        result[key] = {
-          type,
-          isRequired,
-          options,
-        };
+        const options = getEnumOptions(field, isRequired);
+        result[key] = { type, isRequired, options };
       } else {
         result[key] = { type, isRequired };
       }
@@ -122,16 +97,22 @@ export const mapSchemaToFormFields = (
   return result;
 };
 
-// export const getSchemaDefaultValues = <TSchema extends SchemaType>(
-//   schema: SchemaType,
-// ): Record<> => {
-//   const formFields = Object.entries(mapSchemaToFormFields(schema));
+const getEnumOptions = (
+  field: ZodTypeAny,
+  isRequired: boolean,
+): SelectOption[] => {
+  const enumField = (
+    isRequired ? field : getBaseField(field)
+  ) as ZodNativeEnum<EnumLike>;
 
-//   const result: Record<string, any> = {};
+  const options = Object.entries(enumField._def.values).map(([_, value]) => {
+    const stringValue = value.toString();
 
-//   formFields.forEach(([fieldName, fieldConfig]) => {
-//     if (fieldConfig.type !== "select") {
-//       result[fieldName] = "";
-//     }
-//   });
-// };
+    return {
+      label: stringValue,
+      value: stringValue,
+    };
+  });
+
+  return options;
+};
