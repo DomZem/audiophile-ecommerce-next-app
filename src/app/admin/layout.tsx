@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarInset,
@@ -28,6 +29,7 @@ import Link from "next/link";
 import { Toaster } from "~/admin/components/ui/Toaster";
 import { ThemeProvider } from "~/admin/providers/ThemeProvider";
 import { ModeToggle } from "~/admin/components/ui/ModeToggle";
+import { NavUser } from "~/admin/components/ui/NavUser";
 
 const items = [
   {
@@ -72,7 +74,7 @@ export default function AdminLayout({
       enableSystem
       disableTransitionOnChange
     >
-      <div className={GeistSans.className}>
+      <div className={`${GeistSans.className}`}>
         <SidebarProvider>
           <Sidebar>
             <SidebarHeader>
@@ -109,10 +111,20 @@ export default function AdminLayout({
                 </SidebarMenu>
               </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+              <NavUser
+                user={{
+                  avatar: null,
+                  email: "anakin.skywalker@gmail.com",
+                  name: "Anakin Sywalker",
+                }}
+              />
+            </SidebarFooter>
             <SidebarRail />
           </Sidebar>
+
           <SidebarInset>
-            <header className="bg-background sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
+            <header className="bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
