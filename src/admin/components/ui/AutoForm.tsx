@@ -23,7 +23,11 @@ import {
   SelectValue,
 } from "./Select";
 import { Textarea } from "./Textarea";
-import { mapSchemaToFormFields } from "~/admin/utils/auto-form";
+import {
+  getFormFieldsDefaultValues,
+  mapSchemaToFormFields,
+  type SelectOption,
+} from "~/admin/utils/auto-form";
 import {
   type ComponentPropsWithoutRef,
   useMemo,
@@ -43,7 +47,7 @@ type InputType =
   | "custom";
 
 type BaseFieldConfig = {
-  type?: Exclude<InputType, "select" | "custom">;
+  type: Exclude<InputType, "select" | "custom">;
   label?: string;
   description?: string;
   placeholder?: string;
@@ -54,7 +58,7 @@ type SelectFieldConfig = {
   label?: string;
   description?: string;
   placeholder?: string;
-  options: { label: string; value: string | number }[];
+  options: SelectOption[];
 };
 
 interface CustomFieldConfig {
@@ -81,14 +85,23 @@ export const AutoForm = <TSchema extends SchemaType>({
   fieldsConfig,
   defaultValues,
 }: AutoFormProps<TSchema>) => {
+  const formFields = useMemo(() => {
+    return mapSchemaToFormFields(schema);
+  }, [schema]);
+
+  const schemaDefaultValues = useMemo(() => {
+    return getFormFieldsDefaultValues(formFields);
+  }, [formFields]);
+
+  const tsDefaultValues = defaultValues as DefaultValues<TypeOf<TSchema>>;
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: {
+      ...schemaDefaultValues,
+      ...tsDefaultValues,
+    },
   });
-
-  const formFields = useMemo(() => {
-    return Object.entries(mapSchemaToFormFields(schema));
-  }, [schema]);
 
   return (
     <Form {...form}>
@@ -96,7 +109,7 @@ export const AutoForm = <TSchema extends SchemaType>({
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn("space-y-8", className)}
       >
-        {formFields.map(([fieldName, formField]) => {
+        {Object.entries(formFields).map(([fieldName, formField]) => {
           const config = fieldsConfig?.[fieldName];
 
           return (

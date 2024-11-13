@@ -72,26 +72,26 @@ export const mapSchemaToFormFields = (
   // ZodEffects ocurs when using .refine() or .transform() methods on the field. ;P
   const baseSchema = schema instanceof ZodEffects ? schema._def.schema : schema;
 
-  if (baseSchema instanceof ZodObject) {
-    const shape = baseSchema.shape;
-
-    for (const key in shape) {
-      const field = shape[key]!;
-      const type = getFieldType(field);
-
-      const isRequired = !(
-        field instanceof ZodOptional || field instanceof ZodNullable
-      );
-
-      if (type === "select") {
-        const options = getEnumOptions(field, isRequired);
-        result[key] = { type, isRequired, options };
-      } else {
-        result[key] = { type, isRequired };
-      }
-    }
-  } else {
+  if (!(baseSchema instanceof ZodObject)) {
     throw new Error("Unsupported schema type");
+  }
+
+  const shape = baseSchema.shape;
+
+  for (const key in shape) {
+    const field = shape[key]!;
+    const type = getFieldType(field);
+
+    const isRequired = !(
+      field instanceof ZodOptional || field instanceof ZodNullable
+    );
+
+    if (type === "select") {
+      const options = getEnumOptions(field, isRequired);
+      result[key] = { type, isRequired, options };
+    } else {
+      result[key] = { type, isRequired };
+    }
   }
 
   return result;
@@ -115,4 +115,30 @@ const getEnumOptions = (
   });
 
   return options;
+};
+
+export const getFormFieldsDefaultValues = (
+  formFields: ReturnType<typeof mapSchemaToFormFields>,
+): Record<string, false | 0 | ""> => {
+  const result = Object.keys(formFields).reduce((acc, fieldName) => {
+    const field = formFields[fieldName];
+
+    if (!field) return acc;
+
+    const fieldValue =
+      field.type === "boolean"
+        ? false
+        : field.type === "number"
+          ? 0
+          : field.type === "date"
+            ? new Date()
+            : "";
+
+    return {
+      ...acc,
+      [fieldName]: fieldValue,
+    };
+  }, {});
+
+  return result;
 };
