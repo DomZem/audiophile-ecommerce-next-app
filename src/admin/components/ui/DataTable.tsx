@@ -5,71 +5,118 @@ import {
   type TableOptions,
   useReactTable,
 } from "@tanstack/react-table";
+import { Table, TableHead, TableHeader, TableRow } from "./Table";
+import React, { useContext } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./Table";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./DropdownMenu";
+import { Button } from "./Button";
 
-export function DataTable<TData>({
-  options,
-}: {
-  options: TableOptions<TData>;
-}) {
-  const table = useReactTable({
-    ...options,
-  });
+interface IDataTableContext<TData> {
+  table: ReturnType<typeof useReactTable<TData>>;
+}
+
+export const DataTableContext =
+  React.createContext<IDataTableContext<any> | null>(null);
+
+interface DataTableProviderProps<TData> {
+  tableOptions: TableOptions<TData>;
+  children: React.ReactNode;
+}
+
+export function DataTableProvider<TData>({
+  tableOptions,
+  children,
+}: DataTableProviderProps<TData>) {
+  const table = useReactTable(tableOptions);
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={options.columns.length}
-                className="h-24 text-center"
-              >
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTableContext.Provider
+      value={{
+        table,
+      }}
+    >
+      {children}
+    </DataTableContext.Provider>
   );
 }
+
+export const useDataTable = () => {
+  const dataTableContext = useContext(DataTableContext);
+
+  if (!dataTableContext) {
+    throw new Error("useDataTable has to be used within <DataTableProvider>");
+  }
+
+  return dataTableContext;
+};
+
+export const DataTable = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="rounded-md border">
+      <Table>{children}</Table>
+    </div>
+  );
+};
+
+export const DataTableSelectColumns = ({
+  mapColumnName,
+}: {
+  mapColumnName?: (name: string) => string;
+}) => {
+  const { table } = useDataTable();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="ml-auto">
+          Columns
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {table
+          .getAllColumns()
+          .filter((column) => column.getCanHide())
+          .map((column) => {
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+              >
+                {mapColumnName ? mapColumnName(column.id) : column.id}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+export const DataTableHeader = () => {
+  const { table } = useDataTable();
+
+  return (
+    <TableHeader>
+      {table.getHeaderGroups().map((headerGroup) => (
+        <TableRow key={headerGroup.id}>
+          {headerGroup.headers.map((header) => {
+            return (
+              <TableHead key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+              </TableHead>
+            );
+          })}
+        </TableRow>
+      ))}
+    </TableHeader>
+  );
+};
