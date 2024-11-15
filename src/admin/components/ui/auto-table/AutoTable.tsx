@@ -44,6 +44,13 @@ import {
   DropdownMenuTrigger,
 } from "../DropdownMenu";
 import { cn } from "~/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "../Sheet";
 
 export type CurrentActionType =
   | "CREATE"
@@ -242,6 +249,32 @@ export const AutoTableDialog = ({
         {children}
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const AutoTableSheet = ({
+  isOpen,
+  onClose,
+  title,
+  description,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription className="sr-only">{description}</SheetDescription>
+        </SheetHeader>
+        {children}
+      </SheetContent>
+    </Sheet>
   );
 };
 
