@@ -13,7 +13,11 @@ import {
   ZodString,
   type ZodTypeAny,
 } from "zod";
-import { type SchemaType } from "./zod";
+import {
+  extractFieldNamesFromSchema,
+  type ZodObjectInfer,
+  type ZodObjectSchema,
+} from "./zod";
 
 export type SelectOption = { label: string; value: string };
 
@@ -64,7 +68,7 @@ export const getFieldType = (field: ZodTypeAny): FormInputFieldType => {
 };
 
 export const mapSchemaToFormFields = (
-  schema: SchemaType,
+  schema: ZodObjectSchema,
 ): Record<string, FormInputField> => {
   const result: Record<string, FormInputField> = {};
 
@@ -141,4 +145,25 @@ export const getFormFieldsDefaultValues = (
   }, {});
 
   return result;
+};
+
+export const sanitizeSchemaObject = (
+  schemaObject: ZodObjectInfer<ZodObjectSchema>,
+  destinySchema: ZodObjectSchema,
+) => {
+  const schemaKeys = Object.keys(schemaObject);
+  const destinySchemaKeys = extractFieldNamesFromSchema(destinySchema);
+
+  const filteredKeys = schemaKeys.filter((field) =>
+    destinySchemaKeys.includes(field),
+  );
+
+  const newObject = filteredKeys.reduce((acc, field) => {
+    return {
+      ...acc,
+      [field]: schemaObject[field] as unknown,
+    };
+  }, {});
+
+  return newObject;
 };

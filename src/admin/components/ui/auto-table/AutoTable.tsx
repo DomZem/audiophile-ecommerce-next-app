@@ -1,8 +1,13 @@
-import React, { type ComponentProps, useEffect, useState } from "react";
+import React, {
+  type ComponentProps,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   extractFieldNamesFromSchema,
-  type SchemaRowType,
-  type SchemaType,
+  type ZodObjectInfer,
+  type ZodObjectSchema,
 } from "~/admin/utils/zod";
 import { useToast } from "~/hooks/use-toast";
 import {
@@ -57,6 +62,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../Sheet";
+import { type DefaultValues } from "react-hook-form";
+import { type TypeOf } from "zod";
+import { sanitizeSchemaObject } from "~/admin/utils/auto-form";
 
 export type CurrentActionType =
   | "CREATE"
@@ -65,31 +73,31 @@ export type CurrentActionType =
   | "DETAILS"
   | null;
 
-interface AutoTableContext<TSchema extends SchemaType> {
+interface AutoTableContext<TSchema extends ZodObjectSchema> {
   schema: TSchema;
-  rowIdentifier: keyof SchemaRowType<TSchema>;
-  selectedRow: SchemaRowType<TSchema> | null;
-  setSelectedRow: (row: SchemaRowType<TSchema> | null) => void;
+  rowIdentifier: keyof ZodObjectInfer<TSchema>;
+  selectedRow: ZodObjectInfer<TSchema> | null;
+  setSelectedRow: (row: ZodObjectInfer<TSchema> | null) => void;
   currentAction: CurrentActionType;
   setCurrentAction: (action: CurrentActionType) => void;
   refetchData: () => Promise<unknown>;
 }
 
 const AutoTableContext =
-  React.createContext<AutoTableContext<SchemaType> | null>(null);
+  React.createContext<AutoTableContext<ZodObjectSchema> | null>(null);
 
-export const AutoTableProvider = <TSchema extends SchemaType>({
+export const AutoTableProvider = <TSchema extends ZodObjectSchema>({
   schema,
   rowIdentifier,
   refetchData,
   children,
 }: {
   schema: TSchema;
-  rowIdentifier: keyof SchemaRowType<TSchema>;
+  rowIdentifier: keyof ZodObjectInfer<TSchema>;
   refetchData: () => Promise<unknown>;
   children: React.ReactNode;
 }) => {
-  const [row, setRow] = useState<SchemaRowType<typeof schema> | null>(null);
+  const [row, setRow] = useState<ZodObjectInfer<typeof schema> | null>(null);
   const [action, setAction] = useState<CurrentActionType>(null);
 
   return (
@@ -100,7 +108,7 @@ export const AutoTableProvider = <TSchema extends SchemaType>({
         currentAction: action,
         setCurrentAction: (action: CurrentActionType) => setAction(action),
         selectedRow: row,
-        setSelectedRow: (row: SchemaRowType<typeof schema> | null) =>
+        setSelectedRow: (row: ZodObjectInfer<typeof schema> | null) =>
           setRow(row),
         refetchData,
       }}
@@ -284,19 +292,31 @@ export const AutoTableSheet = ({
   );
 };
 
-export const AutoTableDialogForms = <TFormSchema extends SchemaType>({
-  formSchema,
-  onCreate,
-  onUpdate,
-}: {
+interface AutoTableForms<TFormSchema extends ZodObjectSchema> {
   formSchema: TFormSchema;
-  onCreate: (data: SchemaRowType<TFormSchema>) => Promise<unknown>;
+  onCreate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
   onUpdate: (
     data: {
       id: string;
-    } & SchemaRowType<TFormSchema>,
+    } & ZodObjectInfer<TFormSchema>,
   ) => Promise<unknown>;
-}) => {
+  createFormConfig?: {
+    title?: string;
+    description?: string;
+  };
+  updateFormConfig?: {
+    title?: string;
+    description?: string;
+  };
+}
+
+export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
+  formSchema,
+  onCreate,
+  onUpdate,
+  createFormConfig,
+  updateFormConfig,
+}: AutoTableForms<TFormSchema>) => {
   const { currentAction, setCurrentAction, selectedRow, rowIdentifier } =
     useAutoTable();
   const { handleSubmitData } = useAutoTableSubmitData();
@@ -305,12 +325,26 @@ export const AutoTableDialogForms = <TFormSchema extends SchemaType>({
     setCurrentAction(null);
   };
 
+  // const defaultValues = useMemo(() => {
+  //   return selectedRow
+  //     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
+  //         TypeOf<TFormSchema>
+  //       >)
+  //     : undefined;
+  // }, [formSchema, selectedRow]);
+
+  const defaultValues = selectedRow
+    ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
+        TypeOf<TFormSchema>
+      >)
+    : undefined;
+
   return (
     <>
       <AutoTableDialog
         isOpen={currentAction === "CREATE"}
-        title="Create"
-        description="Create a new item"
+        title={createFormConfig?.title ?? "Create"}
+        description={createFormConfig?.description ?? "Create a new row"}
         onClose={handleClose}
       >
         <AutoForm
@@ -323,13 +357,14 @@ export const AutoTableDialogForms = <TFormSchema extends SchemaType>({
       </AutoTableDialog>
       <AutoTableDialog
         isOpen={currentAction === "UPDATE"}
-        title="Update"
-        description="Update the selected rowm"
+        title={updateFormConfig?.title ?? "Update"}
+        description={updateFormConfig?.description ?? "Update the row"}
         onClose={handleClose}
       >
         <AutoForm
           schema={formSchema}
           mapLabel={mapDashedFieldName}
+          defaultValues={defaultValues}
           onSubmit={async (d) => {
             if (!selectedRow) {
               throw new Error("No selected row to update");
@@ -348,7 +383,80 @@ export const AutoTableDialogForms = <TFormSchema extends SchemaType>({
   );
 };
 
-export const AutoTableSortableTable = <TSchema extends SchemaType>({
+export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
+  formSchema,
+  onCreate,
+  onUpdate,
+  createFormConfig,
+  updateFormConfig,
+}: AutoTableForms<TFormSchema>) => {
+  const { currentAction, setCurrentAction, selectedRow, rowIdentifier } =
+    useAutoTable();
+  const { handleSubmitData } = useAutoTableSubmitData();
+
+  const handleClose = () => {
+    setCurrentAction(null);
+  };
+
+  // const defaultValues = useMemo(() => {
+  //   return selectedRow
+  //     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
+  //         TypeOf<TFormSchema>
+  //       >)
+  //     : undefined;
+  // }, [formSchema, selectedRow]);
+
+  const defaultValues = selectedRow
+    ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
+        TypeOf<TFormSchema>
+      >)
+    : undefined;
+
+  return (
+    <>
+      <AutoTableSheet
+        isOpen={currentAction === "CREATE"}
+        title={createFormConfig?.title ?? "Create"}
+        description={createFormConfig?.description ?? "Create a new row"}
+        onClose={handleClose}
+      >
+        <AutoForm
+          schema={formSchema}
+          mapLabel={mapDashedFieldName}
+          onSubmit={async (d) => {
+            await handleSubmitData(() => onCreate(d));
+          }}
+        />
+      </AutoTableSheet>
+      <AutoTableSheet
+        isOpen={currentAction === "UPDATE"}
+        title={updateFormConfig?.title ?? "Update"}
+        description={updateFormConfig?.description ?? "Update the row"}
+        onClose={handleClose}
+      >
+        <AutoForm
+          schema={formSchema}
+          mapLabel={mapDashedFieldName}
+          defaultValues={defaultValues}
+          onSubmit={async (d) => {
+            if (!selectedRow) {
+              throw new Error("No selected row to update");
+            }
+
+            await handleSubmitData(() =>
+              onUpdate({
+                id: selectedRow[rowIdentifier] as string,
+                ...d,
+              }),
+            );
+          }}
+        />
+      </AutoTableSheet>
+    </>
+  );
+};
+
+export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
   schema,
   data,
   children,
@@ -356,12 +464,12 @@ export const AutoTableSortableTable = <TSchema extends SchemaType>({
   extraColumns,
 }: {
   schema: TSchema;
-  data: SchemaRowType<TSchema>[];
+  data: ZodObjectInfer<TSchema>[];
   children: React.ReactNode;
   omitColumns?: Partial<{
-    [K in keyof SchemaRowType<TSchema>]: true;
+    [K in keyof ZodObjectInfer<TSchema>]: true;
   }>;
-  extraColumns?: ColumnDef<SchemaRowType<TSchema>>[];
+  extraColumns?: ColumnDef<ZodObjectInfer<TSchema>>[];
 }) => {
   const { schema: autoTableSchema, rowIdentifier } = useAutoTable();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -376,7 +484,7 @@ export const AutoTableSortableTable = <TSchema extends SchemaType>({
     ? fieldNames.filter((fieldName) => !omitColumns[fieldName])
     : fieldNames;
 
-  const basicColumns: ColumnDef<SchemaRowType<TSchema>>[] =
+  const basicColumns: ColumnDef<ZodObjectInfer<TSchema>>[] =
     filteredFieldNames.map((fieldName) => ({
       accessorKey: fieldName,
       header: ({ column }) => {
@@ -568,7 +676,7 @@ const AutoTableDetailsRow = <TDetailsData extends Record<string, unknown>>({
 export const AutoTableActionsColumn = ({
   row,
 }: {
-  row: SchemaRowType<SchemaType>;
+  row: ZodObjectInfer<ZodObjectSchema>;
 }) => {
   const { setCurrentAction, setSelectedRow } = useAutoTable();
 

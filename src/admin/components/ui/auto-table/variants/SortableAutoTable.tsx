@@ -1,4 +1,4 @@
-import { type SchemaType } from "~/admin/utils/zod";
+import { type ZodObjectSchema } from "~/admin/utils/zod";
 import {
   DataTable,
   DataTableHeader,
@@ -14,14 +14,15 @@ import {
   AutoTableHeader,
   AutoTableHeaderTitle,
   AutoTableProvider,
+  AutoTableSheetForms,
   AutoTableSortableTable,
   mapDashedFieldName,
 } from "../AutoTable";
 import { type ComponentProps } from "react";
 
 export const SortableAutoTable = <
-  TSchema extends SchemaType,
-  TFormSchema extends SchemaType,
+  TSchema extends ZodObjectSchema,
+  TFormSchema extends ZodObjectSchema,
   TDetailsData extends Record<string, unknown>,
 >({
   title,
@@ -37,9 +38,11 @@ export const SortableAutoTable = <
   onUpdate,
   onDetails,
   detailsContent,
+  variant = "dialog",
 }: {
   title: string;
   deleteDialog: ComponentProps<typeof AutoTableDeleteDialog>;
+  variant?: "dialog" | "sheet";
 } & Omit<ComponentProps<typeof AutoTableProvider<TSchema>>, "children"> &
   Omit<
     ComponentProps<typeof AutoTableSortableTable<TSchema>>,
@@ -86,11 +89,19 @@ export const SortableAutoTable = <
       </AutoTableSortableTable>
 
       <AutoTableDeleteDialog {...deleteDialog} />
-      <AutoTableDialogForms
-        formSchema={formSchema}
-        onCreate={onCreate}
-        onUpdate={onUpdate}
-      />
+      {variant === "dialog" ? (
+        <AutoTableDialogForms
+          formSchema={formSchema}
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+        />
+      ) : (
+        <AutoTableSheetForms
+          formSchema={formSchema}
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+        />
+      )}
     </AutoTableProvider>
   );
 };

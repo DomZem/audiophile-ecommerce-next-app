@@ -1,10 +1,10 @@
 import { ZodEffects, ZodObject, type z, type ZodRawShape } from "zod";
 
-export type SchemaType =
+export type ZodObjectSchema =
   | ZodObject<ZodRawShape>
   | ZodEffects<ZodObject<ZodRawShape>>;
 
-export type SchemaRowType<TSchema extends SchemaType> = z.infer<TSchema>;
+export type ZodObjectInfer<TSchema extends ZodObjectSchema> = z.infer<TSchema>;
 
 export type StringOrNumberKeyOnly<T> = Extract<
   {
@@ -13,7 +13,9 @@ export type StringOrNumberKeyOnly<T> = Extract<
   string | number
 >;
 
-export const extractFieldNamesFromSchema = (schema: SchemaType): string[] => {
+export const extractFieldNamesFromSchema = (
+  schema: ZodObjectSchema,
+): string[] => {
   const baseSchema = schema instanceof ZodEffects ? schema._def.schema : schema;
 
   if (!(baseSchema instanceof ZodObject)) {

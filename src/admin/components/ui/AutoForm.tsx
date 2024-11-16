@@ -34,7 +34,7 @@ import {
   type ChangeEvent,
 } from "react";
 import { Checkbox } from "./Checkbox";
-import { type SchemaType } from "~/admin/utils/zod";
+import { type ZodObjectSchema } from "~/admin/utils/zod";
 
 type InputType =
   | "text"
@@ -68,7 +68,7 @@ interface CustomFieldConfig {
 
 type FieldConfig = BaseFieldConfig | SelectFieldConfig | CustomFieldConfig;
 
-export interface AutoFormProps<TSchema extends SchemaType> {
+export interface AutoFormProps<TSchema extends ZodObjectSchema> {
   schema: TSchema;
   onSubmit: (data: z.infer<TSchema>) => void;
   className?: string;
@@ -77,7 +77,7 @@ export interface AutoFormProps<TSchema extends SchemaType> {
   defaultValues?: DefaultValues<TypeOf<TSchema>>;
 }
 
-export const AutoForm = <TSchema extends SchemaType>({
+export const AutoForm = <TSchema extends ZodObjectSchema>({
   schema,
   onSubmit,
   className,
