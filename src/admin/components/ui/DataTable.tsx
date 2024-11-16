@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "./DropdownMenu";
 import { Button } from "./Button";
+import { Settings2 } from "lucide-react";
 
 interface IDataTableContext<TData> {
   table: ReturnType<typeof useReactTable<TData>>;
@@ -72,8 +73,8 @@ export const DataTableSelectColumns = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto">
-          Columns
+        <Button variant="outline" size="icon" className="ml-auto">
+          <Settings2 />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

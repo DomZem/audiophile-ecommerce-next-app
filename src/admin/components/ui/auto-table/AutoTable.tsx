@@ -32,7 +32,13 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { Button } from "../Button";
-import { ArrowUpDown, LoaderCircle, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpDown,
+  CirclePlus,
+  CopyX,
+  LoaderCircle,
+  MoreHorizontal,
+} from "lucide-react";
 import dayjs from "dayjs";
 import { TableBody, TableCell, TableRow } from "../Table";
 import {
@@ -208,7 +214,7 @@ export const AutoTableDeleteDialog = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {title ?? "Are you olutely sure?"}
+            {title ?? "Are you absolutely sure?"}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {description ??
@@ -453,8 +459,12 @@ export const AutoTableCreateButton = () => {
   const { setCurrentAction } = useAutoTable();
 
   return (
-    <Button type="button" onClick={() => setCurrentAction("CREATE")}>
-      Create
+    <Button
+      type="button"
+      size="icon"
+      onClick={() => setCurrentAction("CREATE")}
+    >
+      <CirclePlus />
     </Button>
   );
 };
@@ -465,10 +475,11 @@ export const AutoTableCloseDetailsButton = () => {
   return (
     <Button
       type="button"
+      size="icon"
       onClick={() => setCurrentAction(null)}
       variant="outline"
     >
-      Close details
+      <CopyX />
     </Button>
   );
 };
