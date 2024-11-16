@@ -15,54 +15,13 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "~/admin/components/ui/Sidebar";
-import {
-  Fish,
-  GalleryVerticalEnd,
-  Home,
-  ShoppingCart,
-  Soup,
-  Speaker,
-  User,
-} from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 import { Separator } from "~/admin/components/ui/Separator";
-import Link from "next/link";
 import { Toaster } from "~/admin/components/ui/Toaster";
 import { ThemeProvider } from "~/admin/providers/ThemeProvider";
 import { ModeToggle } from "~/admin/components/ui/ModeToggle";
 import { NavUser } from "~/admin/components/ui/NavUser";
-
-const items = [
-  {
-    title: "Dashboard",
-    url: "/admin",
-    icon: Home,
-  },
-  {
-    title: "Users",
-    url: "/admin/users",
-    icon: User,
-  },
-  {
-    title: "Products",
-    url: "/admin/products",
-    icon: Speaker,
-  },
-  {
-    title: "Orders",
-    url: "/admin/orders",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Dishes",
-    url: "/admin/dishes",
-    icon: Soup,
-  },
-  {
-    title: "Ingredients",
-    url: "/admin/ingredients",
-    icon: Fish,
-  },
-];
+import { Menu } from "~/admin/components/layout/Menu";
 
 export default function AdminLayout({
   children,
@@ -97,18 +56,7 @@ export default function AdminLayout({
             </SidebarHeader>
             <SidebarContent className="gap-0">
               <SidebarGroup>
-                <SidebarMenu>
-                  {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <Link href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
+                <Menu />
               </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
