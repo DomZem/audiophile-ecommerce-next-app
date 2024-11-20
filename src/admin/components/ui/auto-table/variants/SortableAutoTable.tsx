@@ -28,7 +28,7 @@ export const SortableAutoTable = <
   title,
   deleteDialog,
   schema,
-  rowIdentifier,
+  rowIdentifierKey,
   refetchData,
   data,
   omitColumns,
@@ -53,7 +53,7 @@ export const SortableAutoTable = <
   return (
     <AutoTableProvider
       schema={schema}
-      rowIdentifier={rowIdentifier}
+      rowIdentifierKey={rowIdentifierKey}
       refetchData={refetchData}
     >
       <AutoTableSortableTable
@@ -68,7 +68,7 @@ export const SortableAutoTable = <
           },
         ]}
       >
-        <div className="space-y-4">
+        <div className="flex flex-1 flex-col gap-4 overflow-auto">
           <AutoTableHeader>
             <AutoTableHeaderTitle>{title}</AutoTableHeaderTitle>
             <div className="inline-flex items-center gap-3">
@@ -78,17 +78,20 @@ export const SortableAutoTable = <
             </div>
           </AutoTableHeader>
 
-          <DataTable>
-            <DataTableHeader />
-            <AutoTableBody
-              onDetails={onDetails}
-              detailsContent={detailsContent}
-            />
-          </DataTable>
+          <div className="overflow-auto">
+            <DataTable>
+              <DataTableHeader />
+              <AutoTableBody
+                onDetails={onDetails}
+                detailsContent={detailsContent}
+              />
+            </DataTable>
+          </div>
         </div>
       </AutoTableSortableTable>
 
       <AutoTableDeleteDialog {...deleteDialog} />
+
       {variant === "dialog" ? (
         <AutoTableDialogForms
           formSchema={formSchema}

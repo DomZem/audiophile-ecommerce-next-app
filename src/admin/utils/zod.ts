@@ -6,12 +6,13 @@ export type ZodObjectSchema =
 
 export type ZodObjectInfer<TSchema extends ZodObjectSchema> = z.infer<TSchema>;
 
-export type StringOrNumberKeyOnly<T> = Extract<
-  {
-    [K in keyof T]: T[K] extends string | number ? K : never;
-  }[keyof T],
-  string | number
->;
+export type StringOrNumberKeyOnly<T> = {
+  [K in keyof T]: T[K] extends string | number
+    ? T[K] extends boolean | Date
+      ? never
+      : K
+    : never;
+}[keyof T];
 
 export const extractFieldNamesFromSchema = (
   schema: ZodObjectSchema,

@@ -1,11 +1,7 @@
-import React, {
-  type ComponentProps,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { type ComponentProps, useEffect, useState } from "react";
 import {
   extractFieldNamesFromSchema,
+  type StringOrNumberKeyOnly,
   type ZodObjectInfer,
   type ZodObjectSchema,
 } from "~/admin/utils/zod";
@@ -75,7 +71,7 @@ export type CurrentActionType =
 
 interface AutoTableContext<TSchema extends ZodObjectSchema> {
   schema: TSchema;
-  rowIdentifier: keyof ZodObjectInfer<TSchema>;
+  rowIdentifierKey: StringOrNumberKeyOnly<ZodObjectInfer<TSchema>>;
   selectedRow: ZodObjectInfer<TSchema> | null;
   setSelectedRow: (row: ZodObjectInfer<TSchema> | null) => void;
   currentAction: CurrentActionType;
@@ -88,12 +84,15 @@ const AutoTableContext =
 
 export const AutoTableProvider = <TSchema extends ZodObjectSchema>({
   schema,
-  rowIdentifier,
+  rowIdentifierKey,
   refetchData,
   children,
 }: {
   schema: TSchema;
-  rowIdentifier: keyof ZodObjectInfer<TSchema>;
+  rowIdentifierKey: Extract<
+    StringOrNumberKeyOnly<ZodObjectInfer<TSchema>>,
+    string
+  >;
   refetchData: () => Promise<unknown>;
   children: React.ReactNode;
 }) => {
@@ -104,7 +103,7 @@ export const AutoTableProvider = <TSchema extends ZodObjectSchema>({
     <AutoTableContext.Provider
       value={{
         schema,
-        rowIdentifier,
+        rowIdentifierKey,
         currentAction: action,
         setCurrentAction: (action: CurrentActionType) => setAction(action),
         selectedRow: row,
@@ -133,7 +132,7 @@ export const useAutoTableDelete = ({
 }: {
   onDelete: (args: { id: string }) => Promise<unknown>;
 }) => {
-  const { selectedRow, setCurrentAction, refetchData, rowIdentifier } =
+  const { selectedRow, setCurrentAction, refetchData, rowIdentifierKey } =
     useAutoTable();
   const { toast } = useToast();
 
@@ -143,7 +142,7 @@ export const useAutoTableDelete = ({
         throw new Error("No selected row to delete");
       }
 
-      const id = selectedRow[rowIdentifier] as string;
+      const id = selectedRow[rowIdentifierKey] as string;
       await onDelete({ id });
       await refetchData();
 
@@ -204,9 +203,9 @@ export const AutoTableDeleteDialog = ({
   title,
   description,
 }: {
-  onDelete: (args: { id: string }) => Promise<unknown>;
   title?: string;
   description?: string;
+  onDelete: (args: { id: string }) => Promise<unknown>;
 }) => {
   const { currentAction, setCurrentAction } = useAutoTable();
   const { handleDelete } = useAutoTableDelete({
@@ -317,7 +316,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
   createFormConfig,
   updateFormConfig,
 }: AutoTableForms<TFormSchema>) => {
-  const { currentAction, setCurrentAction, selectedRow, rowIdentifier } =
+  const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
     useAutoTable();
   const { handleSubmitData } = useAutoTableSubmitData();
 
@@ -372,7 +371,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
 
             await handleSubmitData(() =>
               onUpdate({
-                id: selectedRow[rowIdentifier] as string,
+                id: selectedRow[rowIdentifierKey] as string,
                 ...d,
               }),
             );
@@ -390,7 +389,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
   createFormConfig,
   updateFormConfig,
 }: AutoTableForms<TFormSchema>) => {
-  const { currentAction, setCurrentAction, selectedRow, rowIdentifier } =
+  const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
     useAutoTable();
   const { handleSubmitData } = useAutoTableSubmitData();
 
@@ -445,7 +444,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
 
             await handleSubmitData(() =>
               onUpdate({
-                id: selectedRow[rowIdentifier] as string,
+                id: selectedRow[rowIdentifierKey] as string,
                 ...d,
               }),
             );
@@ -471,7 +470,8 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
   }>;
   extraColumns?: ColumnDef<ZodObjectInfer<TSchema>>[];
 }) => {
-  const { schema: autoTableSchema, rowIdentifier } = useAutoTable();
+  const { schema: autoTableSchema, rowIdentifierKey: rowIdentifier } =
+    useAutoTable();
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   // TODO: implement this
