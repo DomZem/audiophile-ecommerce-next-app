@@ -61,6 +61,10 @@ import {
 import { type DefaultValues } from "react-hook-form";
 import { type TypeOf } from "zod";
 import { sanitizeSchemaObject } from "~/admin/utils/auto-form";
+import { Pagination } from "../Pagination";
+import { RowsPerPageSelect } from "../RowsPerPageSelect";
+import { usePage } from "~/hooks/use-page";
+import { useRowsPerPage } from "~/admin/hooks/use-rows-per-page";
 
 export type CurrentActionType =
   | "CREATE"
@@ -709,6 +713,40 @@ export const AutoTableActionsColumn = ({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const defaultPageSizeOptions = [10, 20, 30, 40, 50];
+
+export const AutoTablePagination = ({
+  className,
+  totalPagesCount,
+  pageSizeOptions,
+  ...props
+}: {
+  pageSizeOptions?: number[];
+} & React.DetailedHTMLProps<
+  React.HTMLAttributes<HTMLDivElement>,
+  HTMLDivElement
+> &
+  ComponentProps<typeof Pagination>) => {
+  const [_, setPage] = usePage();
+  const [rowsPerPage, setRowsPerPage] = useRowsPerPage();
+
+  return (
+    <div className={cn("flex justify-end", className)} {...props}>
+      <div className="flex items-center gap-6">
+        <RowsPerPageSelect
+          pageSizeOptions={pageSizeOptions ?? defaultPageSizeOptions}
+          value={rowsPerPage.toString()}
+          onChange={async (v) => {
+            await setPage(1);
+            await setRowsPerPage(parseInt(v, 10));
+          }}
+        />
+        <Pagination totalPagesCount={totalPagesCount} />
+      </div>
+    </div>
   );
 };
 
