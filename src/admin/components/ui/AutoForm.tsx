@@ -35,6 +35,7 @@ import {
 } from "react";
 import { Checkbox } from "./Checkbox";
 import { type ZodObjectSchema } from "~/admin/utils/zod";
+import { ImageUpload } from "./auto-table/ImageUpload";
 
 type InputType =
   | "text"
@@ -44,10 +45,11 @@ type InputType =
   | "textarea"
   | "select"
   | "password"
+  | "image"
   | "custom";
 
 type BaseFieldConfig = {
-  type: Exclude<InputType, "select" | "custom">;
+  type?: Exclude<InputType, "select" | "custom">;
   label?: string;
   description?: string;
   placeholder?: string;
@@ -191,6 +193,12 @@ export const AutoForm = <TSchema extends ZodObjectSchema>({
                         ) : config?.type === "textarea" ? (
                           <FormControl>
                             <Textarea className="resize-none" {...field} />
+                          </FormControl>
+                        ) : config?.type === "image" ? (
+                          <FormControl>
+                            <ImageUpload
+                              onUploadComplete={(url) => field.onChange(url)}
+                            />
                           </FormControl>
                         ) : (
                           <FormControl>
