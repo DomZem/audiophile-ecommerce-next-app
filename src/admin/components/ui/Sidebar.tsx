@@ -4,19 +4,19 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
-import { cn } from "~/lib/utils";
-import { useIsMobile } from "../../hooks/use-mobile";
-import { Button } from "./Button";
-import { Input } from "./Input";
-import { Separator } from "./Separator";
-import { Sheet, SheetContent } from "./Sheet";
-import { Skeleton } from "./Skeleton";
+import { useIsMobile } from "~/admin/hooks/use-mobile";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./Tooltip";
+import { cn } from "~/lib/utils";
+import { Sheet, SheetContent } from "./Sheet";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import { Separator } from "./Separator";
+import { Skeleton } from "./Skeleton";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -323,10 +323,10 @@ SidebarRail.displayName = "SidebarRail";
 
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"main">
+  React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
   return (
-    <main
+    <div
       ref={ref}
       className={cn(
         "bg-background relative flex min-h-svh flex-1 flex-col",

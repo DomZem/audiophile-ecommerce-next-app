@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../Dialog";
-import { AutoForm } from "../AutoForm";
+import { AutoForm, AutoFormProps } from "../AutoForm";
 import { DataTableProvider, useDataTable } from "../DataTable";
 import {
   type ColumnDef,
@@ -295,7 +295,7 @@ export const AutoTableSheet = ({
   );
 };
 
-interface AutoTableForms<TFormSchema extends ZodObjectSchema> {
+type AutoTableForms<TFormSchema extends ZodObjectSchema> = {
   formSchema: TFormSchema;
   onCreate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
   onUpdate: (
@@ -311,7 +311,7 @@ interface AutoTableForms<TFormSchema extends ZodObjectSchema> {
     title?: string;
     description?: string;
   };
-}
+} & Pick<AutoFormProps<TFormSchema>, "fieldsConfig">;
 
 export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
   formSchema,
@@ -319,6 +319,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
   onUpdate,
   createFormConfig,
   updateFormConfig,
+  fieldsConfig,
 }: AutoTableForms<TFormSchema>) => {
   const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
     useAutoTable();
@@ -352,6 +353,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
       >
         <AutoForm
           schema={formSchema}
+          fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           onSubmit={async (d) => {
             await handleSubmitData(() => onCreate(d));
@@ -366,6 +368,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
       >
         <AutoForm
           schema={formSchema}
+          fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           defaultValues={defaultValues}
           onSubmit={async (d) => {
@@ -392,6 +395,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
   onUpdate,
   createFormConfig,
   updateFormConfig,
+  fieldsConfig,
 }: AutoTableForms<TFormSchema>) => {
   const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
     useAutoTable();
@@ -425,6 +429,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
       >
         <AutoForm
           schema={formSchema}
+          fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           onSubmit={async (d) => {
             await handleSubmitData(() => onCreate(d));
@@ -439,6 +444,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
       >
         <AutoForm
           schema={formSchema}
+          fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           defaultValues={defaultValues}
           onSubmit={async (d) => {

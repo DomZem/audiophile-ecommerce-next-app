@@ -68,26 +68,22 @@ export const SortableAutoTable = <
           },
         ]}
       >
-        <div className="flex flex-1 flex-col gap-4 overflow-auto">
-          <AutoTableHeader>
-            <AutoTableHeaderTitle>{title}</AutoTableHeaderTitle>
-            <div className="inline-flex items-center gap-3">
-              <DataTableSelectColumns mapColumnName={mapDashedFieldName} />
-              <AutoTableCloseDetailsButton />
-              <AutoTableCreateButton />
-            </div>
-          </AutoTableHeader>
-
-          <div className="overflow-auto">
-            <DataTable>
-              <DataTableHeader />
-              <AutoTableBody
-                onDetails={onDetails}
-                detailsContent={detailsContent}
-              />
-            </DataTable>
+        <AutoTableHeader>
+          <AutoTableHeaderTitle>{title}</AutoTableHeaderTitle>
+          <div className="inline-flex items-center gap-3">
+            <DataTableSelectColumns mapColumnName={mapDashedFieldName} />
+            <AutoTableCloseDetailsButton />
+            <AutoTableCreateButton />
           </div>
-        </div>
+        </AutoTableHeader>
+
+        <DataTable>
+          <DataTableHeader />
+          <AutoTableBody
+            onDetails={onDetails}
+            detailsContent={detailsContent}
+          />
+        </DataTable>
       </AutoTableSortableTable>
 
       <AutoTableDeleteDialog {...deleteDialog} />

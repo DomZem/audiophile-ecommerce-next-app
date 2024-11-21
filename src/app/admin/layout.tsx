@@ -71,7 +71,7 @@ export default function AdminLayout({
             <SidebarRail />
           </Sidebar>
 
-          <SidebarInset>
+          <SidebarInset className="h-screen overflow-hidden">
             <header className="bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="-ml-1" />
@@ -79,7 +79,7 @@ export default function AdminLayout({
               </div>
               <ModeToggle />
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+            {children}
           </SidebarInset>
         </SidebarProvider>
         <Toaster />

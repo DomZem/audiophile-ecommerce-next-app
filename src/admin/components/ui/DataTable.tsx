@@ -57,8 +57,10 @@ export const useDataTable = () => {
 
 export const DataTable = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="bg-background rounded-md border">
-      <Table>{children}</Table>
+    <div className="overflow-auto">
+      <div className="bg-background rounded-md border">
+        <Table>{children}</Table>
+      </div>
     </div>
   );
 };

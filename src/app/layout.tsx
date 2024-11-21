@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Manrope } from "next/font/google";
 import { Toaster } from "~/components/ui/Toaster";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -21,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.className}`}>
       <body>
-        <TRPCReactProvider>
-          {children}
-          <Toaster />
-        </TRPCReactProvider>
+        <NuqsAdapter>
+          <TRPCReactProvider>
+            {children}
+            <Toaster />
+          </TRPCReactProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );
