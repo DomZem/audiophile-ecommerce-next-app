@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../Dialog";
-import { AutoForm, AutoFormProps } from "../AutoForm";
+import { AutoForm, type AutoFormProps } from "../AutoForm";
 import { DataTableProvider, useDataTable } from "../DataTable";
 import {
   type ColumnDef,
@@ -73,82 +73,73 @@ export type CurrentActionType =
   | "DETAILS"
   | null;
 
-interface AutoTableContext<TSchema extends ZodObjectSchema> {
+interface AutoTableContext<
+  TSchema extends ZodObjectSchema,
+  TFormSchema extends ZodObjectSchema,
+> {
   schema: TSchema;
   rowIdentifierKey: StringOrNumberKeyOnly<ZodObjectInfer<TSchema>>;
   selectedRow: ZodObjectInfer<TSchema> | null;
   setSelectedRow: (row: ZodObjectInfer<TSchema> | null) => void;
   currentAction: CurrentActionType;
   setCurrentAction: (action: CurrentActionType) => void;
-  refetchData: () => Promise<unknown>;
+  handleRefetchData: () => Promise<unknown>;
+  handleDelete: () => Promise<unknown>;
+  formSchema: TFormSchema;
+  handleCreate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
+  handleUpdate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
 }
 
-const AutoTableContext =
-  React.createContext<AutoTableContext<ZodObjectSchema> | null>(null);
+const AutoTableContext = React.createContext<AutoTableContext<
+  ZodObjectSchema,
+  ZodObjectSchema
+> | null>(null);
 
-export const AutoTableProvider = <TSchema extends ZodObjectSchema>({
-  schema,
-  rowIdentifierKey,
-  refetchData,
-  children,
-}: {
-  schema: TSchema;
-  rowIdentifierKey: Extract<
+export const AutoTableProvider = <
+  TSchema extends ZodObjectSchema,
+  TFormSchema extends ZodObjectSchema,
+  TRowIdentifierKey extends Extract<
     StringOrNumberKeyOnly<ZodObjectInfer<TSchema>>,
     string
-  >;
-  refetchData: () => Promise<unknown>;
-  children: React.ReactNode;
-}) => {
-  const [row, setRow] = useState<ZodObjectInfer<typeof schema> | null>(null);
-  const [action, setAction] = useState<CurrentActionType>(null);
-
-  return (
-    <AutoTableContext.Provider
-      value={{
-        schema,
-        rowIdentifierKey,
-        currentAction: action,
-        setCurrentAction: (action: CurrentActionType) => setAction(action),
-        selectedRow: row,
-        setSelectedRow: (row: ZodObjectInfer<typeof schema> | null) =>
-          setRow(row),
-        refetchData,
-      }}
-    >
-      {children}
-    </AutoTableContext.Provider>
-  );
-};
-
-export const useAutoTable = () => {
-  const context = React.useContext(AutoTableContext);
-
-  if (!context) {
-    throw new Error("useAutoTable must be used within an AutoTableProvider");
-  }
-
-  return context;
-};
-
-export const useAutoTableDelete = ({
+  >,
+  TRowIdentifierKeyType extends ZodObjectInfer<TSchema>[TRowIdentifierKey],
+>({
+  schema,
+  rowIdentifierKey,
+  onRefetchData,
+  children,
   onDelete,
+  formSchema,
+  onCreate,
+  onUpdate,
 }: {
-  onDelete: (args: { id: string }) => Promise<unknown>;
+  schema: TSchema;
+  rowIdentifierKey: TRowIdentifierKey;
+  formSchema: TFormSchema;
+  children: React.ReactNode;
+  onRefetchData: () => Promise<unknown>;
+  onDelete: (args: { id: TRowIdentifierKeyType }) => Promise<unknown>;
+  onCreate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
+  onUpdate: (
+    data: {
+      id: TRowIdentifierKeyType;
+    } & ZodObjectInfer<TFormSchema>,
+  ) => Promise<unknown>;
 }) => {
-  const { selectedRow, setCurrentAction, refetchData, rowIdentifierKey } =
-    useAutoTable();
+  const [selectedRow, setSelectedRow] =
+    useState<ZodObjectInfer<TSchema> | null>(null);
+  const [currentAction, setCurrentAction] = useState<CurrentActionType>(null);
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    try {
-      if (!selectedRow) {
-        throw new Error("No selected row to delete");
-      }
+    if (!selectedRow) {
+      throw new Error("No selected row to delete");
+    }
 
-      const id = selectedRow[rowIdentifierKey] as string;
+    try {
+      const id = selectedRow[rowIdentifierKey];
       await onDelete({ id });
-      await refetchData();
+      await onRefetchData();
 
       toast({
         title: "Success",
@@ -166,19 +157,10 @@ export const useAutoTableDelete = ({
     }
   };
 
-  return {
-    handleDelete,
-  };
-};
-
-export const useAutoTableSubmitData = () => {
-  const { currentAction, setCurrentAction, refetchData } = useAutoTable();
-  const { toast } = useToast();
-
   const handleSubmitData = async (callback: () => Promise<unknown>) => {
     try {
       await callback();
-      await refetchData();
+      await onRefetchData();
 
       toast({
         title: "Success",
@@ -197,24 +179,62 @@ export const useAutoTableSubmitData = () => {
     }
   };
 
-  return {
-    handleSubmitData,
-  };
+  return (
+    <AutoTableContext.Provider
+      value={{
+        schema,
+        rowIdentifierKey,
+        currentAction,
+        setCurrentAction: (action: CurrentActionType) =>
+          setCurrentAction(action),
+        selectedRow,
+        setSelectedRow: (row: ZodObjectInfer<typeof schema> | null) =>
+          setSelectedRow(row),
+        handleRefetchData: onRefetchData,
+        handleDelete,
+        formSchema,
+        handleCreate: async (data) => {
+          await handleSubmitData(async () => {
+            await onCreate(data);
+          });
+        },
+        handleUpdate: async (data) => {
+          if (!selectedRow) {
+            throw new Error("No selected row to update");
+          }
+
+          await handleSubmitData(async () => {
+            await onUpdate({
+              ...data,
+              id: selectedRow[rowIdentifierKey],
+            });
+          });
+        },
+      }}
+    >
+      {children}
+    </AutoTableContext.Provider>
+  );
+};
+
+export const useAutoTable = () => {
+  const context = React.useContext(AutoTableContext);
+
+  if (!context) {
+    throw new Error("useAutoTable must be used within an AutoTableProvider");
+  }
+
+  return context;
 };
 
 export const AutoTableDeleteDialog = ({
-  onDelete,
   title,
   description,
 }: {
   title?: string;
   description?: string;
-  onDelete: (args: { id: string }) => Promise<unknown>;
 }) => {
-  const { currentAction, setCurrentAction } = useAutoTable();
-  const { handleDelete } = useAutoTableDelete({
-    onDelete,
-  });
+  const { currentAction, setCurrentAction, handleDelete } = useAutoTable();
 
   const handleClose = () => {
     setCurrentAction(null);
@@ -296,13 +316,6 @@ export const AutoTableSheet = ({
 };
 
 type AutoTableForms<TFormSchema extends ZodObjectSchema> = {
-  formSchema: TFormSchema;
-  onCreate: (data: ZodObjectInfer<TFormSchema>) => Promise<unknown>;
-  onUpdate: (
-    data: {
-      id: string;
-    } & ZodObjectInfer<TFormSchema>,
-  ) => Promise<unknown>;
   createFormConfig?: {
     title?: string;
     description?: string;
@@ -314,28 +327,22 @@ type AutoTableForms<TFormSchema extends ZodObjectSchema> = {
 } & Pick<AutoFormProps<TFormSchema>, "fieldsConfig">;
 
 export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
-  formSchema,
-  onCreate,
-  onUpdate,
   createFormConfig,
   updateFormConfig,
   fieldsConfig,
 }: AutoTableForms<TFormSchema>) => {
-  const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
-    useAutoTable();
-  const { handleSubmitData } = useAutoTableSubmitData();
+  const {
+    currentAction,
+    setCurrentAction,
+    selectedRow,
+    formSchema,
+    handleCreate,
+    handleUpdate,
+  } = useAutoTable();
 
   const handleClose = () => {
     setCurrentAction(null);
   };
-
-  // const defaultValues = useMemo(() => {
-  //   return selectedRow
-  //     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
-  //         TypeOf<TFormSchema>
-  //       >)
-  //     : undefined;
-  // }, [formSchema, selectedRow]);
 
   const defaultValues = selectedRow
     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
@@ -355,9 +362,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
           schema={formSchema}
           fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
-          onSubmit={async (d) => {
-            await handleSubmitData(() => onCreate(d));
-          }}
+          onSubmit={handleCreate}
         />
       </AutoTableDialog>
       <AutoTableDialog
@@ -371,18 +376,7 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
           fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           defaultValues={defaultValues}
-          onSubmit={async (d) => {
-            if (!selectedRow) {
-              throw new Error("No selected row to update");
-            }
-
-            await handleSubmitData(() =>
-              onUpdate({
-                id: selectedRow[rowIdentifierKey] as string,
-                ...d,
-              }),
-            );
-          }}
+          onSubmit={handleUpdate}
         />
       </AutoTableDialog>
     </>
@@ -390,28 +384,22 @@ export const AutoTableDialogForms = <TFormSchema extends ZodObjectSchema>({
 };
 
 export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
-  formSchema,
-  onCreate,
-  onUpdate,
   createFormConfig,
   updateFormConfig,
   fieldsConfig,
 }: AutoTableForms<TFormSchema>) => {
-  const { currentAction, setCurrentAction, selectedRow, rowIdentifierKey } =
-    useAutoTable();
-  const { handleSubmitData } = useAutoTableSubmitData();
+  const {
+    currentAction,
+    setCurrentAction,
+    selectedRow,
+    formSchema,
+    handleCreate,
+    handleUpdate,
+  } = useAutoTable();
 
   const handleClose = () => {
     setCurrentAction(null);
   };
-
-  // const defaultValues = useMemo(() => {
-  //   return selectedRow
-  //     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
-  //         TypeOf<TFormSchema>
-  //       >)
-  //     : undefined;
-  // }, [formSchema, selectedRow]);
 
   const defaultValues = selectedRow
     ? (sanitizeSchemaObject(selectedRow, formSchema) as DefaultValues<
@@ -431,9 +419,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
           schema={formSchema}
           fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
-          onSubmit={async (d) => {
-            await handleSubmitData(() => onCreate(d));
-          }}
+          onSubmit={handleCreate}
         />
       </AutoTableSheet>
       <AutoTableSheet
@@ -447,18 +433,7 @@ export const AutoTableSheetForms = <TFormSchema extends ZodObjectSchema>({
           fieldsConfig={fieldsConfig}
           mapLabel={mapDashedFieldName}
           defaultValues={defaultValues}
-          onSubmit={async (d) => {
-            if (!selectedRow) {
-              throw new Error("No selected row to update");
-            }
-
-            await handleSubmitData(() =>
-              onUpdate({
-                id: selectedRow[rowIdentifierKey] as string,
-                ...d,
-              }),
-            );
-          }}
+          onSubmit={handleUpdate}
         />
       </AutoTableSheet>
     </>
@@ -588,7 +563,7 @@ export const AutoTableCreateButton = () => {
 };
 
 export const AutoTableCloseDetailsButton = () => {
-  const { setCurrentAction } = useAutoTable();
+  const { currentAction, setCurrentAction } = useAutoTable();
 
   return (
     <Button
@@ -596,6 +571,9 @@ export const AutoTableCloseDetailsButton = () => {
       size="icon"
       onClick={() => setCurrentAction(null)}
       variant="outline"
+      className={
+        currentAction === "DETAILS" ? "bg-accent text-accent-foreground" : ""
+      }
     >
       <CopyX />
     </Button>
@@ -677,7 +655,13 @@ const AutoTableDetailsRow = <TDetailsData extends Record<string, unknown>>({
   return (
     <TableRow className="relative w-screen" data-state="selected">
       <TableCell colSpan={columnsLength}>
-        {!detailsData ? <AutoTableLoadingBlock /> : detailsContent(detailsData)}
+        {!detailsData ? (
+          <div className="flex h-96 items-center justify-center">
+            <LoaderCircle className="animate-spin" />
+          </div>
+        ) : (
+          detailsContent(detailsData)
+        )}
       </TableCell>
     </TableRow>
   );
@@ -736,6 +720,7 @@ export const AutoTablePagination = ({
   HTMLDivElement
 > &
   ComponentProps<typeof Pagination>) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setPage] = usePage();
   const [rowsPerPage, setRowsPerPage] = useRowsPerPage();
 
@@ -752,14 +737,6 @@ export const AutoTablePagination = ({
         />
         <Pagination totalPagesCount={totalPagesCount} />
       </div>
-    </div>
-  );
-};
-
-export const AutoTableLoadingBlock = () => {
-  return (
-    <div className="flex h-96 items-center justify-center">
-      <LoaderCircle className="animate-spin" />
     </div>
   );
 };
