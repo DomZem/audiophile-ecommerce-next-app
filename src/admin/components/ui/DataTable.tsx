@@ -21,6 +21,7 @@ interface IDataTableContext<TData> {
 }
 
 export const DataTableContext =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   React.createContext<IDataTableContext<any> | null>(null);
 
 interface DataTableProviderProps<TData> {
