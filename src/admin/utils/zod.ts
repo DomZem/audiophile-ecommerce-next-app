@@ -14,9 +14,9 @@ export type StringOrNumberKeyOnly<T> = {
     : never;
 }[keyof T];
 
-export const extractFieldNamesFromSchema = (
-  schema: ZodObjectSchema,
-): string[] => {
+export const extractFieldNamesFromSchema = <TSchema extends ZodObjectSchema>(
+  schema: TSchema,
+): (keyof ZodObjectInfer<TSchema>)[] => {
   const baseSchema = schema instanceof ZodEffects ? schema._def.schema : schema;
 
   if (!(baseSchema instanceof ZodObject)) {

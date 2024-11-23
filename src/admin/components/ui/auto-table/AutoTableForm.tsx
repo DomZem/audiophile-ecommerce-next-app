@@ -1,3 +1,5 @@
+"use client";
+
 import { type ZodObjectSchema } from "~/admin/utils/zod";
 import {
   Dialog,
@@ -74,7 +76,7 @@ export const AutoTableSheet = ({
   );
 };
 
-type AutoTableForms<TFormSchema extends ZodObjectSchema> = {
+export type AutoTableForms<TFormSchema extends ZodObjectSchema> = {
   createFormConfig?: {
     title?: string;
     description?: string;

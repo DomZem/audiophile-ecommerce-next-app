@@ -1,7 +1,10 @@
+"use client";
+
 import { cn } from "~/lib/utils";
 import { useAutoTable } from "./AutoTableContext";
 import { Button } from "../Button";
-import { CirclePlus, CopyX } from "lucide-react";
+import { CirclePlus, CopyX, RotateCw } from "lucide-react";
+import { useState } from "react";
 
 export const AutoTableHeader = ({
   className,
@@ -61,6 +64,26 @@ export const AutoTableCloseDetailsButton = () => {
       }
     >
       <CopyX />
+    </Button>
+  );
+};
+
+export const AutoTableRefreshButton = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { handleRefetchData } = useAutoTable();
+
+  return (
+    <Button
+      type="button"
+      size="icon"
+      disabled={isRefreshing}
+      onClick={async () => {
+        setIsRefreshing(true);
+        await handleRefetchData();
+        setIsRefreshing(false);
+      }}
+    >
+      <RotateCw className={cn("", isRefreshing ? "animate-spin" : "")} />
     </Button>
   );
 };

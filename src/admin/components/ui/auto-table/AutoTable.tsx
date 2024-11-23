@@ -1,3 +1,5 @@
+"use client";
+
 import React, { type ComponentProps, useEffect } from "react";
 import {
   extractFieldNamesFromSchema,
@@ -24,11 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../DropdownMenu";
-import { cn } from "~/lib/utils";
-import { Pagination } from "../Pagination";
-import { RowsPerPageSelect } from "../RowsPerPageSelect";
-import { usePage } from "~/hooks/use-page";
-import { useRowsPerPage } from "~/admin/hooks/use-rows-per-page";
 import { type CurrentActionType, useAutoTable } from "./AutoTableContext";
 import { mapDashedFieldName } from "~/admin/utils/map";
 
@@ -47,8 +44,7 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
   }>;
   extraColumns?: ColumnDef<ZodObjectInfer<TSchema>>[];
 }) => {
-  const { schema: autoTableSchema, rowIdentifierKey: rowIdentifier } =
-    useAutoTable();
+  const { schema: autoTableSchema, rowIdentifierKey } = useAutoTable();
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   // TODO: implement this
@@ -70,7 +66,7 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {mapDashedFieldName(fieldName)}
+            {mapDashedFieldName(fieldName as string)}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -79,7 +75,7 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
         const cellData = row.original[fieldName];
 
         if (typeof cellData === "object" && dayjs(cellData as Date).isValid()) {
-          return dayjs(cellData as Date).format("DD/MM/YYYY");
+          return dayjs(cellData as Date).format("DD/MM/YYYY HH:mm");
         }
 
         return <div>{cellData}</div>;
@@ -102,7 +98,7 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
         state: {
           sorting,
         },
-        getRowId: (row) => row[rowIdentifier] as string,
+        getRowId: (row) => row[rowIdentifierKey],
       }}
     >
       {children}
@@ -110,11 +106,16 @@ export const AutoTableSortableTable = <TSchema extends ZodObjectSchema>({
   );
 };
 
-export const AutoTableBody = <TDetailsData extends Record<string, unknown>>({
+export const AutoTableBody = <
+  TDetailsData extends Record<string, unknown>,
+  TRowIdentifierKeyType extends string | number,
+>({
   onDetails,
   detailsContent,
 }: Pick<
-  ComponentProps<typeof AutoTableDetailsRow<TDetailsData>>,
+  ComponentProps<
+    typeof AutoTableDetailsRow<TDetailsData, TRowIdentifierKeyType>
+  >,
   "onDetails" | "detailsContent"
 >) => {
   const { table } = useDataTable();
@@ -133,7 +134,8 @@ export const AutoTableBody = <TDetailsData extends Record<string, unknown>>({
               ))}
             </TableRow>
             <AutoTableDetailsRow
-              rowId={row.original.id as string}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              rowId={row.original.id as TRowIdentifierKeyType}
               columnsLength={columnsLength}
               onDetails={onDetails}
               detailsContent={detailsContent}
@@ -151,21 +153,27 @@ export const AutoTableBody = <TDetailsData extends Record<string, unknown>>({
   );
 };
 
-const AutoTableDetailsRow = <TDetailsData extends Record<string, unknown>>({
+const AutoTableDetailsRow = <
+  TDetailsData extends Record<string, unknown>,
+  TRowIdentifierKeyType extends string | number,
+>({
   rowId,
   columnsLength,
   onDetails,
   detailsContent,
 }: {
-  rowId: string;
+  rowId: TRowIdentifierKeyType;
   columnsLength: number;
-  onDetails: (args: { id: string }) => Promise<TDetailsData>;
+  onDetails: (args: { id: TRowIdentifierKeyType }) => Promise<TDetailsData>;
   detailsContent: (data: TDetailsData) => React.ReactNode;
 }) => {
-  const { selectedRow, currentAction } = useAutoTable();
+  const { selectedRow, currentAction, rowIdentifierKey } = useAutoTable();
   const [detailsData, setDetailsData] = React.useState<TDetailsData | null>(
     null,
   );
+
+  // TODO: Check if the provided rowId is the same structure as the row from context
+  // if not, throw an error
 
   const isSelectedRowDetails =
     currentAction === "DETAILS" && selectedRow?.id === rowId;
@@ -233,40 +241,5 @@ export const AutoTableActionsColumn = ({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
-
-const defaultPageSizeOptions = [10, 20, 30, 40, 50];
-
-export const AutoTablePagination = ({
-  className,
-  totalPagesCount,
-  pageSizeOptions,
-  ...props
-}: {
-  pageSizeOptions?: number[];
-} & React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
-> &
-  ComponentProps<typeof Pagination>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setPage] = usePage();
-  const [rowsPerPage, setRowsPerPage] = useRowsPerPage();
-
-  return (
-    <div className={cn("flex justify-end", className)} {...props}>
-      <div className="flex items-center gap-6">
-        <RowsPerPageSelect
-          pageSizeOptions={pageSizeOptions ?? defaultPageSizeOptions}
-          value={rowsPerPage.toString()}
-          onChange={async (v) => {
-            await setPage(1);
-            await setRowsPerPage(parseInt(v, 10));
-          }}
-        />
-        <Pagination totalPagesCount={totalPagesCount} />
-      </div>
-    </div>
   );
 };

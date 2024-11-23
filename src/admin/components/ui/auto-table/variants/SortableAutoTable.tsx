@@ -1,65 +1,79 @@
-import { type ZodObjectSchema } from "~/admin/utils/zod";
+import { type ComponentProps } from "react";
 import {
   DataTable,
   DataTableHeader,
   DataTableSelectColumns,
 } from "../../DataTable";
+import { AutoTableProvider } from "../AutoTableContext";
 import {
   AutoTableActionsColumn,
   AutoTableBody,
+  AutoTableSortableTable,
+} from "../AutoTable";
+import { mapDashedFieldName } from "~/admin/utils/map";
+import {
   AutoTableCloseDetailsButton,
   AutoTableCreateButton,
-  AutoTableDeleteDialog,
-  AutoTableDialogForms,
   AutoTableHeader,
   AutoTableHeaderTitle,
-  AutoTableProvider,
+  AutoTableRefreshButton,
+} from "../AutoTableHeader";
+import { AutoTableDeleteDialog } from "../AutoTableDeleteDialog";
+import {
+  AutoTableDialogForms,
+  type AutoTableForms,
   AutoTableSheetForms,
-  AutoTableSortableTable,
-  mapDashedFieldName,
-} from "../AutoTable";
-import { type ComponentProps } from "react";
+} from "../AutoTableForm";
+import {
+  type StringOrNumberKeyOnly,
+  type ZodObjectInfer,
+  type ZodObjectSchema,
+} from "~/admin/utils/zod";
 
 export const SortableAutoTable = <
   TSchema extends ZodObjectSchema,
   TFormSchema extends ZodObjectSchema,
+  TRowIdentifierKey extends Extract<
+    StringOrNumberKeyOnly<ZodObjectInfer<TSchema>>,
+    string
+  >,
+  TRowIdentifierKeyType extends ZodObjectInfer<TSchema>[TRowIdentifierKey],
   TDetailsData extends Record<string, unknown>,
 >({
-  title,
-  deleteDialog,
   schema,
-  rowIdentifierKey,
-  refetchData,
   data,
-  omitColumns,
   extraColumns,
-  formSchema,
-  onCreate,
-  onUpdate,
-  onDetails,
+  omitColumns,
+  fieldsConfig,
+  createFormConfig,
+  updateFormConfig,
   detailsContent,
+  onDetails,
+  title,
   variant = "dialog",
-}: {
-  title: string;
-  deleteDialog: ComponentProps<typeof AutoTableDeleteDialog>;
-  variant?: "dialog" | "sheet";
-} & Omit<ComponentProps<typeof AutoTableProvider<TSchema>>, "children"> &
-  Omit<
-    ComponentProps<typeof AutoTableSortableTable<TSchema>>,
-    "children" | "schema"
-  > &
-  ComponentProps<typeof AutoTableDialogForms<TFormSchema>> &
-  ComponentProps<typeof AutoTableBody<TDetailsData>>) => {
-  return (
-    <AutoTableProvider
-      schema={schema}
-      rowIdentifierKey={rowIdentifierKey}
-      refetchData={refetchData}
+  ...props
+}: Omit<
+  ComponentProps<
+    typeof AutoTableProvider<
+      TSchema,
+      TFormSchema,
+      TRowIdentifierKey,
+      TRowIdentifierKeyType
     >
+  >,
+  "children"
+> &
+  Omit<ComponentProps<typeof AutoTableSortableTable<TSchema>>, "children"> &
+  AutoTableForms<TFormSchema> &
+  ComponentProps<typeof AutoTableBody<TDetailsData, TRowIdentifierKeyType>> & {
+    title: string;
+    variant?: "sheet" | "dialog";
+  }) => {
+  return (
+    <AutoTableProvider schema={schema} {...props}>
       <AutoTableSortableTable
         schema={schema}
         data={data}
-        omitColumns={omitColumns}
         extraColumns={[
           ...(extraColumns ?? []),
           {
@@ -67,10 +81,12 @@ export const SortableAutoTable = <
             cell: ({ row }) => <AutoTableActionsColumn row={row.original} />,
           },
         ]}
+        omitColumns={omitColumns}
       >
         <AutoTableHeader>
           <AutoTableHeaderTitle>{title}</AutoTableHeaderTitle>
           <div className="inline-flex items-center gap-3">
+            <AutoTableRefreshButton />
             <DataTableSelectColumns mapColumnName={mapDashedFieldName} />
             <AutoTableCloseDetailsButton />
             <AutoTableCreateButton />
@@ -86,19 +102,19 @@ export const SortableAutoTable = <
         </DataTable>
       </AutoTableSortableTable>
 
-      <AutoTableDeleteDialog {...deleteDialog} />
+      <AutoTableDeleteDialog />
 
-      {variant === "dialog" ? (
-        <AutoTableDialogForms
-          formSchema={formSchema}
-          onCreate={onCreate}
-          onUpdate={onUpdate}
+      {variant === "sheet" ? (
+        <AutoTableSheetForms
+          fieldsConfig={fieldsConfig}
+          createFormConfig={createFormConfig}
+          updateFormConfig={updateFormConfig}
         />
       ) : (
-        <AutoTableSheetForms
-          formSchema={formSchema}
-          onCreate={onCreate}
-          onUpdate={onUpdate}
+        <AutoTableDialogForms
+          fieldsConfig={fieldsConfig}
+          createFormConfig={createFormConfig}
+          updateFormConfig={updateFormConfig}
         />
       )}
     </AutoTableProvider>
