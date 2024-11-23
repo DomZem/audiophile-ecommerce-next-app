@@ -3,7 +3,7 @@ import { mapSchemaToFormFields } from "./auto-form";
 
 describe("auto-form utilities", () => {
   describe("mapSchemaToFormFields", () => {
-    it("should map ZodObject schema to form fields correctly", () => {
+    it("should map schema to form fields correctly", () => {
       const userSchema = z.object({
         name: z.string(),
         age: z.number(),
@@ -109,6 +109,59 @@ describe("auto-form utilities", () => {
       expect(() => mapSchemaToFormFields(schema)).toThrow(
         "Unsupported schema type",
       );
+    });
+
+    it("it should handle refine for field", () => {
+      const userSchema = z.object({
+        firstName: z.string(),
+        lastName: z.string(),
+        age: z
+          .number()
+          .positive()
+          .refine((age) => age < 100, {
+            message: "Age must be less than 100",
+            path: ["age"],
+          })
+          .optional(),
+      });
+
+      const result = mapSchemaToFormFields(userSchema);
+
+      expect(result).toEqual({
+        firstName: { type: "string", isRequired: true },
+        lastName: { type: "string", isRequired: true },
+        age: {
+          type: "number",
+          isRequired: false,
+        },
+      });
+    });
+
+    it("should handle superRefine for schema", () => {
+      const registerSchema = z
+        .object({
+          firstName: z.string(),
+          lastName: z.string().optional(),
+          password: z.string().min(6),
+          confirmPassword: z.string().min(6),
+        })
+        .superRefine((data, ctx) => {
+          if (data.password !== data.confirmPassword) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Passwords do not match",
+            });
+          }
+        });
+
+      const result = mapSchemaToFormFields(registerSchema);
+
+      expect(result).toEqual({
+        firstName: { type: "string", isRequired: true },
+        lastName: { type: "string", isRequired: false },
+        password: { type: "string", isRequired: true },
+        confirmPassword: { type: "string", isRequired: true },
+      });
     });
 
     it("should throw an error for nested schema", () => {
